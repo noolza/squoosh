@@ -29,3 +29,5 @@ You can run the development server with:
 ```sh
 npm start
 ```
+
+![Screenshot](https://noolza.github.io/hhmsj/screenshot.jpg "微博慧绘美食记")
