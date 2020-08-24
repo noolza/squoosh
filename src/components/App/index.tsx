@@ -28,8 +28,10 @@ interface Props {}
 interface State {
   awaitingShareTarget: boolean;
   file?: File | Fileish;
+  drops: File[];
   isEditorOpen: Boolean;
   Compress?: typeof import('../compress').default;
+  fetchingIndex:number
 }
 
 export default class App extends Component<Props, State> {
@@ -37,11 +39,13 @@ export default class App extends Component<Props, State> {
     awaitingShareTarget: new URL(location.href).searchParams.has('share-target'),
     isEditorOpen: false,
     file: undefined,
+    drops:[],
     Compress: undefined,
+    fetchingIndex:0
   };
 
   snackbar?: SnackBarElement;
-
+  drops?:File[];
   constructor() {
     super();
 
@@ -87,7 +91,7 @@ export default class App extends Component<Props, State> {
     if (!files || files.length === 0) return;
     const file = files[0];
     this.openEditor();
-    this.setState({ file });
+    this.setState({ file,drops:files,fetchingIndex:0});
   }
 
   @bind
@@ -117,21 +121,56 @@ export default class App extends Component<Props, State> {
     this.setState({ isEditorOpen: true });
   }
 
-  render({}: Props, { file, isEditorOpen, Compress, awaitingShareTarget }: State) {
-    const showSpinner = awaitingShareTarget || (isEditorOpen && !Compress);
+  @bind
+  onNext(){
+    const {fetchingIndex,drops} = this.state;
+    if(fetchingIndex==drops.length-1) {
+      this.showSnack('finish',{timeout:3000,actions:['OK']});
+      return;
+    }
+    console.log(fetchingIndex+1);
+    const file = drops[fetchingIndex+1];
+    this.setState({file,fetchingIndex:fetchingIndex+1})
+  }
 
+  render({}: Props, { file, isEditorOpen, Compress, awaitingShareTarget,drops,fetchingIndex}: State) {
+    const showSpinner = awaitingShareTarget || (isEditorOpen && !Compress);
     return (
       <div id="app" class={style.app}>
-        <file-drop accept="image/*" onfiledrop={this.onFileDrop} class={style.drop}>
+        <file-drop accept="image/*" onfiledrop={this.onFileDrop} class={style.drop} multiple>
           {
             showSpinner
               ? <loading-spinner class={style.appLoader}/>
               : isEditorOpen
-                ? Compress && <Compress file={file!} showSnack={this.showSnack} onBack={back} />
-                : <Intro onFile={this.onIntroPickFile} showSnack={this.showSnack} />
+                ? Compress && <Compress files={drops} file={file!} showSnack={this.showSnack} onBack={back} onNext={this.onNext}/>
+                :<Intro onFile={this.onIntroPickFile} showSnack={this.showSnack}/>
           }
           <snack-bar ref={linkRef(this, 'snackbar')} />
         </file-drop>
+        <div class={style.files}>
+          <ul class={style.demos}>
+            {drops.map((f, i) =>
+               <li key={i} class={style.demoItem}>
+                 <div class={style.demo}>
+                   <div class={style.demoImgContainer}>
+                     <div class={style.demoImgAspect}>
+                       <img class={style.demoIcon} src={URL.createObjectURL(f)} alt="" decoding="async"/>
+                       {fetchingIndex === i &&
+                       <div class={style.demoLoading}>
+                         {/*<loading-spinner className={style.demoLoadingSpinner}/>*/}
+                       </div>
+                       }
+                     </div>
+                   </div>
+                   <div class={style.demoDesc}>
+                     <div class={style.demoDescription}>{f.name}</div>
+                     <div class={style.demoDescription}>{'('+f.size/1000+'k)'}</div>
+                   </div>
+                 </div>
+               </li>
+            )}
+          </ul>
+        </div>
       </div>
     );
   }

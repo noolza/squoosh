@@ -61,8 +61,10 @@ interface Side {
 
 interface Props {
   file: File | Fileish;
+  files: File[];
   showSnack: SnackBarElement['showSnackbar'];
   onBack: () => void;
+  onNext: () => void;
 }
 
 interface State {
@@ -569,7 +571,14 @@ export default class Compress extends Component<Props, State> {
     this.setState({ sides });
   }
 
-  render({ onBack }: Props, { loading, sides, source, mobileView }: State) {
+  @bind
+  next() {
+    const { onNext } = this.props;
+    this.setState({ loading:true, source:undefined });
+    onNext();
+  }
+
+  render({ onBack,files }: Props, { loading, sides, source, mobileView }: State) {
     const [leftSide, rightSide] = sides;
     const [leftImageData, rightImageData] = sides.map(i => i.data);
 
@@ -599,6 +608,7 @@ export default class Compress extends Component<Props, State> {
         copyDirection={copyDirections[index]}
         onCopyToOtherClick={this.onCopyToOtherClick.bind(this, index as 0|1)}
         buttonPosition={mobileView ? 'stack-right' : buttonPositions[index]}
+        onNext={this.next}
       >
         {!mobileView ? null : [
           <ExpandIcon class={style.expandIcon} key="expand-icon"/>,
@@ -619,6 +629,7 @@ export default class Compress extends Component<Props, State> {
     return (
       <div class={style.compress}>
         <Output
+          files={files}
           source={source}
           mobileView={mobileView}
           leftCompressed={leftImageData}

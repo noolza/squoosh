@@ -19,6 +19,7 @@ import { cleanSet } from '../../lib/clean-modify';
 import { SourceImage } from '../compress';
 
 interface Props {
+    files:File[];
   source?: SourceImage;
   inputProcessorState?: InputProcessorState;
   mobileView: boolean;
@@ -34,6 +35,7 @@ interface State {
   scale: number;
   editingScale: boolean;
   altBackground: boolean;
+  fetchingIndex: number
 }
 
 const scaleToOpts: ScaleToOpts = {
@@ -48,6 +50,7 @@ export default class Output extends Component<Props, State> {
     scale: 1,
     editingScale: false,
     altBackground: false,
+    fetchingIndex: 0
   };
   canvasLeft?: HTMLCanvasElement;
   canvasRight?: HTMLCanvasElement;
@@ -249,8 +252,8 @@ export default class Output extends Component<Props, State> {
   }
 
   render(
-    { mobileView, leftImgContain, rightImgContain, source, onBack }: Props,
-    { scale, editingScale, altBackground }: State,
+    { mobileView, leftImgContain, rightImgContain, source, onBack,files }: Props,
+    { scale, editingScale, altBackground,fetchingIndex}: State,
   ) {
     const leftDraw = this.leftDrawable();
     const rightDraw = this.rightDrawable();

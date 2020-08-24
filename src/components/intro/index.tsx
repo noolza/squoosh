@@ -190,12 +190,12 @@ export default class Intro extends Component<Props, State> {
           <p>Or try one of these:</p>
           <ul class={style.demos}>
             {demos.map((demo, i) =>
-              <li key={demo.url} class={style.demoItem}>
+              <li key={i} class={style.demoItem}>
                 <button class={style.demoButton} onClick={this.onDemoClick.bind(this, i)}>
                   <div class={style.demo}>
                     <div class={style.demoImgContainer}>
                       <div class={style.demoImgAspect}>
-                        <img class={style.demoIcon} src={demo.iconUrl} alt="" decoding="async" />
+                        <img class={style.demoIcon} src={demo.iconUrl} alt="" decoding="async" height='128' />
                         {fetchingDemoIndex === i &&
                           <div class={style.demoLoading}>
                             <loading-spinner class={style.demoLoadingSpinner} />

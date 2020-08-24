@@ -7,6 +7,7 @@ import '../custom-els/LoadingSpinner';
 import { SourceImage } from '../compress';
 import { Fileish, bind } from '../../lib/initial-util';
 
+
 interface Props {
   loading: boolean;
   source?: SourceImage;
@@ -16,6 +17,7 @@ interface Props {
   copyDirection: CopyAcrossIconProps['copyDirection'];
   buttonPosition: keyof typeof buttonPositionClass;
   onCopyToOtherClick(): void;
+  onNext(): void;
 }
 
 interface State {
@@ -37,12 +39,17 @@ export default class Results extends Component<Props, State> {
 
   /** The timeout ID between entering the loading state, and changing UI */
   private loadingTimeoutId: number = 0;
-
+  private isStart: boolean = false;
   componentDidUpdate(prevProps: Props, prevState: State) {
     if (prevProps.loading && !this.props.loading) {
       // Just stopped loading
       clearTimeout(this.loadingTimeoutId);
       this.setState({ showLoadingState: false });
+      if(this.props.downloadUrl && this.props.imageFile && this.props.downloadUrl != prevProps.downloadUrl ){
+        console.log(this.isStart)
+        if(this.isStart)
+          this.download();
+      }
     } else if (!prevProps.loading && this.props.loading) {
       // Just started loading
       this.loadingTimeoutId = self.setTimeout(
@@ -71,6 +78,30 @@ export default class Results extends Component<Props, State> {
       metric2: after,
       metric3: change,
     });
+  }
+
+  @bind
+  fakeDownload(obj:HTMLElement) {
+    // GA can’t do floats. So we round to ints. We're deliberately rounding to nearest kilobyte to
+    // avoid cases where exact image sizes leak something interesting about the user.
+    const ev = document.createEvent('MouseEvents');
+    ev.initMouseEvent(
+          'click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null,
+      );
+    obj.dispatchEvent(ev);
+  }
+
+  @bind
+  download() {
+    const {imageFile,onNext} = this.props
+    if(!imageFile) return;
+    this.isStart = true;
+    const saveLink = document.createElementNS('http://www.w3.org/1999/xhtml', 'a') as HTMLAnchorElement;
+    saveLink.href = this.props.downloadUrl as string;
+    saveLink.download = imageFile.name;
+    this.onDownload();
+    this.fakeDownload(saveLink);
+    onNext();
   }
 
   render(
@@ -105,10 +136,10 @@ export default class Results extends Component<Props, State> {
           {(downloadUrl && imageFile) && (
             <a
               class={`${style.downloadLink} ${showLoadingState ? style.downloadLinkDisable : ''}`}
-              href={downloadUrl}
-              download={imageFile.name}
-              title="Download"
-              onClick={this.onDownload}
+              // href={downloadUrl}
+              // download={imageFile.name}
+              // title="Download"
+              onClick={this.download}
             >
               <DownloadIcon class={style.downloadIcon} />
             </a>

@@ -44,14 +44,13 @@
   position: absolute;
   display: flex;
   justify-content: center;
-  top: 0;
+  bottom: 100px;
   left: 0;
   right: 0;
   padding: 9px 84px;
   overflow: hidden;
   flex-wrap: wrap;
   contain: content;
-
   // Allow clicks to fall through to the pinch zoom area
   pointer-events: none;
   & > * {
