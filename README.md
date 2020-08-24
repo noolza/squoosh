@@ -1,4 +1,5 @@
-# [Squoosh]!
+# [Squoosh！ supports multiple files]
+支持多个图片压缩，可以同时选择多张图片一起压缩。
 
 [Squoosh] is an image compression web app that allows you to dive into the advanced options provided
 by various image compressors.
@@ -28,5 +29,3 @@ You can run the development server with:
 ```sh
 npm start
 ```
-
-[Squoosh]: https://squoosh.app
