@@ -30,4 +30,4 @@ You can run the development server with:
 npm start
 ```
 
-![Screenshot](https://noolza.github.io/hhmsj/screenshot.jpg "微博慧绘美食记")
+![Screenshot](https://6868-hh-msj-049316-1257759357.tcb.qcloud.la/assets/images/home/screenshot.jpg?sign=eab01662b41ab676762045c0d6c9c731&t=1598271053 "微博慧绘美食记")
