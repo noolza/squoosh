@@ -83,7 +83,7 @@
   display: block;
   padding: 0;
   border-top: 1px solid #e8e8e8;
-  margin: 0 auto;
+  margin: 0;
 
   @media (min-width: 400px) {
     display: grid;
@@ -97,15 +97,18 @@
 
   @media (min-width: 900px) {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr 1fr;
-    width: 773px;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+    width: 100%;
   }
 }
-
+.hide {
+  display: none;
+}
 .demo-item {
   background: rgba(255,255,255,0.6);
   display: flex;
   border-bottom: 1px solid #e8e8e8;
+  box-sizing: border-box;
 
   @media (min-width: 580px) {
     border: 1px solid #e8e8e8;
@@ -114,14 +117,28 @@
   }
 }
 
+.demo-item-active{
+  border: #50e3c2 2px solid;
+}
+
+.add-button,
 .demo-button {
   composes: unbutton from '../../lib/util.scss';
   flex: 1;
-
-  &:hover,
-  &:focus {
-    background: #f5f5f5;
-  }
+  box-sizing: border-box;
+  display: block;
+  flex-direction: column;
+}
+.add-button{
+  width:80px;
+  height:100%;
+  font-size: 60px;
+  text-align: center;
+  vertical-align: center;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  display: flex;
 }
 
 .demo {
@@ -176,4 +193,25 @@
 
 .demo-loading-spinner {
   --color: #fff;
+}
+
+.remove-area {
+  //position: fixed;
+  margin-left:-20px;
+  display: flex;
+  height:100%;
+  //border-radius: 25px;
+  top: 0px;
+  width:100%;
+  justify-items: flex-end;
+}
+
+.remove-button{
+  //background: none;
+  border: none;
+  border-radius: 25px;
+  width:30px;
+  height:30px;
+  margin: 5px;
+  font-weight: bolder;
 }

@@ -8,6 +8,7 @@ import SnackBarElement, { SnackOptions } from '../../lib/SnackBar';
 import '../../lib/SnackBar';
 import Intro from '../intro';
 import '../custom-els/LoadingSpinner';
+// import { RemoveIcon } from '../../lib/icons';
 
 const ROUTE_EDITOR = '/editor';
 
@@ -31,7 +32,8 @@ interface State {
   drops: File[];
   isEditorOpen: Boolean;
   Compress?: typeof import('../compress').default;
-  fetchingIndex:number
+  fetchingIndex:number;
+  selected:number;
 }
 
 export default class App extends Component<Props, State> {
@@ -41,11 +43,14 @@ export default class App extends Component<Props, State> {
     file: undefined,
     drops:[],
     Compress: undefined,
-    fetchingIndex:0
+    fetchingIndex:-1,
+    selected: -1,
   };
 
   snackbar?: SnackBarElement;
-  drops?:File[];
+  private fileInput?: HTMLInputElement;
+  private isSaved: boolean = false;
+
   constructor() {
     super();
 
@@ -88,10 +93,7 @@ export default class App extends Component<Props, State> {
 
   @bind
   private onFileDrop({ files }: FileDropEvent) {
-    if (!files || files.length === 0) return;
-    const file = files[0];
-    this.openEditor();
-    this.setState({ file,drops:files,fetchingIndex:0});
+    this.updateFileList(files);
   }
 
   @bind
@@ -112,6 +114,20 @@ export default class App extends Component<Props, State> {
   }
 
   @bind
+  private removeFile(idx:number) {
+    const { drops } = this.state;
+    drops.splice(idx, 1);
+    this.setState({ drops });
+  }
+
+  @bind
+  private onDemoClick(idx:number) {
+    const { drops } = this.state;
+    const file = drops[idx];
+    this.setState({ file, selected:idx });
+  }
+
+  @bind
   private openEditor() {
     if (this.state.isEditorOpen) return;
     // Change path, but preserve query string.
@@ -122,18 +138,49 @@ export default class App extends Component<Props, State> {
   }
 
   @bind
-  onNext(){
-    const {fetchingIndex,drops} = this.state;
-    if(fetchingIndex==drops.length-1) {
-      this.showSnack('finish',{timeout:3000,actions:['OK']});
-      return;
+  onNext(): boolean {
+    const { fetchingIndex, drops } = this.state;
+    if (fetchingIndex >= drops.length - 1) {
+      this.showSnack('finish', { timeout:3000, actions:['OK'] });
+      this.setState({ fetchingIndex:drops.length });
+      this.isSaved = true;
+      return true;
     }
-    console.log(fetchingIndex+1);
-    const file = drops[fetchingIndex+1];
-    this.setState({file,fetchingIndex:fetchingIndex+1})
+    let idx = fetchingIndex;
+    // start
+    if (fetchingIndex === -1) {
+      idx = 0;
+    }
+    const file = drops[idx + 1];
+    this.setState({ file, fetchingIndex:idx + 1 });
+    return false;
   }
 
-  render({}: Props, { file, isEditorOpen, Compress, awaitingShareTarget,drops,fetchingIndex}: State) {
+  @bind
+  private onAddFileClick() {
+    this.fileInput!.click();
+  }
+
+  @bind
+  private onFileChange(event: Event): void {
+    const fileInput = event.target as HTMLInputElement;
+    const files = fileInput.files;
+    if (!files || files.length === 0) return;
+    const arr = Array.from(files);
+    this.updateFileList(arr);
+  }
+
+  private updateFileList(files:File[]): void{
+    if (!files || files.length === 0) return;
+    const { file, drops } = this.state;
+    const f = file ? file :files[0];
+    const fs = this.isSaved ? files : drops.concat(files);
+    this.isSaved = false;
+    this.openEditor();
+    this.setState({ file:f, drops:fs, fetchingIndex:-1 });
+  }
+
+  render({}: Props, { file, isEditorOpen, Compress, awaitingShareTarget, drops, fetchingIndex, selected }: State) {
     const showSpinner = awaitingShareTarget || (isEditorOpen && !Compress);
     return (
       <div id="app" class={style.app}>
@@ -142,32 +189,43 @@ export default class App extends Component<Props, State> {
             showSpinner
               ? <loading-spinner class={style.appLoader}/>
               : isEditorOpen
-                ? Compress && <Compress files={drops} file={file!} showSnack={this.showSnack} onBack={back} onNext={this.onNext}/>
+                ? Compress && <Compress files={drops} file={file!} showSnack={this.showSnack} onBack={back} onNext={this.onNext} />
                 :<Intro onFile={this.onIntroPickFile} showSnack={this.showSnack}/>
           }
           <snack-bar ref={linkRef(this, 'snackbar')} />
         </file-drop>
         <div class={style.files}>
+          <div key={-1} class={style.demoItem}>
+            <button class={style.addButton} onClick={this.onAddFileClick} >+</button>
+          </div>
+          <input
+            class={style.hide}
+            ref={linkRef(this, 'fileInput')}
+            type="file"
+            multiple
+            onChange={this.onFileChange}
+          />
           <ul class={style.demos}>
             {drops.map((f, i) =>
-               <li key={i} class={style.demoItem}>
-                 <div class={style.demo}>
-                   <div class={style.demoImgContainer}>
-                     <div class={style.demoImgAspect}>
-                       <img class={style.demoIcon} src={URL.createObjectURL(f)} alt="" decoding="async"/>
-                       {fetchingIndex === i &&
-                       <div class={style.demoLoading}>
-                         {/*<loading-spinner className={style.demoLoadingSpinner}/>*/}
+               <li key={i} class={`${style.demoItem} ${selected === i ? style.demoItemActive : ''}`}>
+                 <button class={style.demoButton} onClick={this.onDemoClick.bind(this, i)}>
+                   <div class={style.demo}>
+                     <div class={style.demoImgContainer}>
+                       <div class={style.demoImgAspect}>
+                         <img class={style.demoIcon} src={URL.createObjectURL(f)} alt="" decoding="async"/>
+                         {fetchingIndex === i && <div class={style.demoLoading} ><loading-spinner className={style.demoLoadingSpinner}/></div>}
                        </div>
-                       }
+                     </div>
+                     <div class={style.demoDesc}>
+                       <div class={style.demoDescription}>{f.name}</div>
+                       <div class={style.demoDescription}>{`(${f.size / 1000}k)`}</div>
                      </div>
                    </div>
-                   <div class={style.demoDesc}>
-                     <div class={style.demoDescription}>{f.name}</div>
-                     <div class={style.demoDescription}>{'('+f.size/1000+'k)'}</div>
-                   </div>
+                 </button>
+                 <div class={style.removeArea}>
+                   <button class={style.removeButton} onClick={this.removeFile.bind(this, i)}>―</button>
                  </div>
-               </li>
+               </li>,
             )}
           </ul>
         </div>

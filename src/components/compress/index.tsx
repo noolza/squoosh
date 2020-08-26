@@ -64,7 +64,7 @@ interface Props {
   files: File[];
   showSnack: SnackBarElement['showSnackbar'];
   onBack: () => void;
-  onNext: () => void;
+  onNext: () => boolean;
 }
 
 interface State {
@@ -572,13 +572,13 @@ export default class Compress extends Component<Props, State> {
   }
 
   @bind
-  next() {
+  next():boolean {
     const { onNext } = this.props;
     this.setState({ loading:true, source:undefined });
-    onNext();
+    return onNext();
   }
 
-  render({ onBack,files }: Props, { loading, sides, source, mobileView }: State) {
+  render({ onBack, files }: Props, { loading, sides, source, mobileView }: State) {
     const [leftSide, rightSide] = sides;
     const [leftImageData, rightImageData] = sides.map(i => i.data);
 

@@ -19,7 +19,7 @@ import { cleanSet } from '../../lib/clean-modify';
 import { SourceImage } from '../compress';
 
 interface Props {
-    files:File[];
+  files:File[];
   source?: SourceImage;
   inputProcessorState?: InputProcessorState;
   mobileView: boolean;
@@ -252,8 +252,8 @@ export default class Output extends Component<Props, State> {
   }
 
   render(
-    { mobileView, leftImgContain, rightImgContain, source, onBack,files }: Props,
-    { scale, editingScale, altBackground,fetchingIndex}: State,
+    { mobileView, leftImgContain, rightImgContain, source, onBack, files }: Props,
+    { scale, editingScale, altBackground }: State,
   ) {
     const leftDraw = this.leftDrawable();
     const rightDraw = this.rightDrawable();

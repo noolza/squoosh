@@ -7,7 +7,6 @@ import '../custom-els/LoadingSpinner';
 import { SourceImage } from '../compress';
 import { Fileish, bind } from '../../lib/initial-util';
 
-
 interface Props {
   loading: boolean;
   source?: SourceImage;
@@ -17,7 +16,7 @@ interface Props {
   copyDirection: CopyAcrossIconProps['copyDirection'];
   buttonPosition: keyof typeof buttonPositionClass;
   onCopyToOtherClick(): void;
-  onNext(): void;
+  onNext:() => boolean;
 }
 
 interface State {
@@ -45,10 +44,10 @@ export default class Results extends Component<Props, State> {
       // Just stopped loading
       clearTimeout(this.loadingTimeoutId);
       this.setState({ showLoadingState: false });
-      if(this.props.downloadUrl && this.props.imageFile && this.props.downloadUrl != prevProps.downloadUrl ){
-        console.log(this.isStart)
-        if(this.isStart)
+      if (this.props.downloadUrl && this.props.imageFile && this.props.downloadUrl != prevProps.downloadUrl) {
+        if (this.isStart) {
           this.download();
+        }
       }
     } else if (!prevProps.loading && this.props.loading) {
       // Just started loading
@@ -82,8 +81,6 @@ export default class Results extends Component<Props, State> {
 
   @bind
   fakeDownload(obj:HTMLElement) {
-    // GA can’t do floats. So we round to ints. We're deliberately rounding to nearest kilobyte to
-    // avoid cases where exact image sizes leak something interesting about the user.
     const ev = document.createEvent('MouseEvents');
     ev.initMouseEvent(
           'click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null,
@@ -93,15 +90,21 @@ export default class Results extends Component<Props, State> {
 
   @bind
   download() {
-    const {imageFile,onNext} = this.props
-    if(!imageFile) return;
+    const { imageFile, onNext } = this.props;
+    if (!imageFile) return;
+
     this.isStart = true;
     const saveLink = document.createElementNS('http://www.w3.org/1999/xhtml', 'a') as HTMLAnchorElement;
     saveLink.href = this.props.downloadUrl as string;
     saveLink.download = imageFile.name;
     this.onDownload();
     this.fakeDownload(saveLink);
-    onNext();
+    saveLink.remove();
+    const isFinish = onNext();
+    if (isFinish) {
+      this.isStart = false;
+      this.setState({ showLoadingState: false });
+    }
   }
 
   render(
